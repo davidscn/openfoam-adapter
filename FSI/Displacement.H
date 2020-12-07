@@ -5,6 +5,8 @@
 
 #include "fvCFD.H"
 #include "fixedValuePointPatchFields.H"
+#include "vectorField.H"
+
 
 namespace preciceAdapter
 {
@@ -18,7 +20,7 @@ class Displacement : public CouplingDataUser
 private:
 
     // Displacement pointVectorField
-    Foam::pointVectorField * pointDisplacement_;
+    Foam::volVectorField * pointDisplacement_;
 
 public:
 

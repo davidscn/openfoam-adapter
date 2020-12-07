@@ -9,10 +9,10 @@ preciceAdapter::FSI::Displacement::Displacement
 )
 :
 pointDisplacement_(
-    const_cast<pointVectorField*>
-    (
-        &mesh.lookupObject<pointVectorField>(namePointDisplacement)
-    )
+const_cast<volVectorField*>
+(
+    &mesh.lookupObject<volVectorField>("cellDisplacement")
+)
 )
 {
     dataType_ = vector;
@@ -42,22 +42,19 @@ void preciceAdapter::FSI::Displacement::read(double * buffer, const unsigned int
         int patchID = patchIDs_.at(j);
 
         // Get the displacement on the patch
-        fixedValuePointPatchVectorField& pointDisplacementFluidPatch
-        (
-            refCast<fixedValuePointPatchVectorField>
-            (
-                pointDisplacement_->boundaryFieldRef()[patchID]
-            )
-        );
+//        volVectorField& pointDisplacementFluidPatch
+//        (
+//                pointDisplacement_->boundaryFieldRef()[patchID]
+//        );
 
         // For every cell of the patch
         forAll(pointDisplacement_->boundaryFieldRef()[patchID], i)
         {
             // Set the displacement to the received one
-            pointDisplacementFluidPatch[i][0] = buffer[bufferIndex++];
-            pointDisplacementFluidPatch[i][1] = buffer[bufferIndex++];
+            pointDisplacement_->boundaryFieldRef()[patchID][i][0] = buffer[bufferIndex++];
+            pointDisplacement_->boundaryFieldRef()[patchID][i][1] = buffer[bufferIndex++];
             if(dim ==3)
-                pointDisplacementFluidPatch[i][2] = buffer[bufferIndex++];
+             pointDisplacement_->boundaryFieldRef()[patchID][i][2] = buffer[bufferIndex++];
         }
     }
 }
