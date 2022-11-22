@@ -1,8 +1,9 @@
 #include "Adapter.H"
 #include "Interface.H"
 #include "Utilities.H"
-
 #include "IOstreams.H"
+#include "Pstream.H"
+#include <iomanip>
 
 using namespace Foam;
 
@@ -1648,26 +1649,65 @@ preciceAdapter::Adapter::~Adapter()
 {
     teardown();
 
+    auto printStats = [&](const clockValue& val, std::string name)
+    {
+        double max_time = val.operator double();
+        Pstream::gather(max_time, [](double v1, double v2)
+                        { return std::max(v1, v2); });
+        double min_time = val.operator double();
+        Pstream::gather(min_time, [](double v1, double v2)
+                        { return std::min(v1, v2); });
+        double avg_time = val.operator double() * val.operator double();
+        Pstream::gather(avg_time, std::plus<double>());
+
+        unsigned int pos_non_space = name.find_first_not_of(' ');
+        name.erase(0, pos_non_space);
+        name.resize(30, ' ');
+
+        // OpenFOAM's Info is not fully compatible with the std iomanip
+        if (Pstream::master())
+        {
+            std::cout << "| " << std::setw(3) << name;
+            std::cout << std::setw(12) << " |";
+            std::cout << std::setw(12) << std::setprecision(5) << std::right;
+            std::cout << min_time << "s |";
+            std::cout << std::setw(12) << std::setprecision(5) << std::right;
+            std::cout << std::sqrt(avg_time / Pstream::nProcs()) << "s |";
+            std::cout << std::setw(12) << std::setprecision(5) << std::right;
+            std::cout << max_time << "s ";
+            std::cout << "|\n";
+        }
+    };
+
     TIMING_MODE(
         // Continuing the output started in the destructor of preciceAdapterFunctionObject
         Info << "Time exclusively in the adapter: " << (timeInConfigRead_ + timeInMeshSetup_ + timeInCheckpointingSetup_ + timeInWrite_ + timeInRead_ + timeInCheckpointingWrite_ + timeInCheckpointingRead_).str() << nl;
-        Info << "  (S) reading preciceDict:       " << timeInConfigRead_.str() << nl;
-        Info << "  (S) constructing preCICE:      " << timeInPreciceConstruct_.str() << nl;
-        Info << "  (S) setting up the interfaces: " << timeInMeshSetup_.str() << nl;
-        Info << "  (S) setting up checkpointing:  " << timeInCheckpointingSetup_.str() << nl;
-        Info << "  (I) writing data:              " << timeInWrite_.str() << nl;
-        Info << "  (I) reading data:              " << timeInRead_.str() << nl;
-        Info << "  (I) writing checkpoints:       " << timeInCheckpointingWrite_.str() << nl;
-        Info << "  (I) reading checkpoints:       " << timeInCheckpointingRead_.str() << nl;
-        Info << "  (I) writing OpenFOAM results:  " << timeInWriteResults_.str() << " (at the end of converged time windows)" << nl << nl;
+        Info << "+---------------------------------------------------------------------------------------+" << nl;
+        Info << "| Section                                  |     min time |     avg time |     max time |" << nl;
+        Info << "+---------------------------------------------------------------------------------------+" << nl;
+        printStats(timeInConfigRead_, "(S) reading preciceDict");
+        printStats(timeInPreciceConstruct_, "(S) constructing preCICE");
+        printStats(timeInMeshSetup_, "(S) setting up interfaces");
+        printStats(timeInCheckpointingSetup_, "(S) setting up checkpointing");
+        printStats(timeInWrite_, "(I) writing data");
+        printStats(timeInRead_, "(I) reading data");
+        printStats(timeInCheckpointingWrite_, "(I) writing checkpoints");
+        printStats(timeInCheckpointingRead_, "(I) reading checkpoints");
+        printStats(timeInWriteResults_, "(I) writing OpenFOAM results");
+        Info << "+---------------------------------------------------------------------------------------+" << nl;
+        Info << nl;
         Info << "Time exclusively in preCICE:     " << (timeInInitialize_ + timeInInitializeData_ + timeInAdvance_ + timeInFinalize_).str() << nl;
-        Info << "  (S) initialize():              " << timeInInitialize_.str() << nl;
-        Info << "  (S) initializeData():          " << timeInInitializeData_.str() << nl;
-        Info << "  (I) advance():                 " << timeInAdvance_.str() << nl;
-        Info << "  (I) finalize():                " << timeInFinalize_.str() << nl;
-        Info << "  These times include time waiting for other participants." << nl;
-        Info << "  See also precice-<participant>-events-summary.log." << nl;
-        Info << "-------------------------------------------------------------------------------------" << nl;)
+        Info << "+---------------------------------------------------------------------------------------+" << nl;
+        Info << "| Section                                  |     min time |     avg time |     max time |" << nl;
+        Info << "+---------------------------------------------------------------------------------------+" << nl;
+        printStats(timeInInitialize_, "(S) initialize()");
+        printStats(timeInInitializeData_, "(S) initializeData()");
+        printStats(timeInAdvance_, "(S) advance()");
+        printStats(timeInFinalize_, "(S) finalize()");
+        Info << "|" << nl;
+        Info << "| These times include time waiting for other participants." << nl;
+        Info << "| See also precice-<participant>-events-summary.log." << nl;
+        Info << "+---------------------------------------------------------------------------------------+" << nl;)
 
     return;
 }
