@@ -1693,7 +1693,7 @@ preciceAdapter::Adapter::~Adapter()
         printStats(timeInRead_, "(I) reading data");
         printStats(timeInCheckpointingWrite_, "(I) writing checkpoints");
         printStats(timeInCheckpointingRead_, "(I) reading checkpoints");
-        printStats(timeInWriteResults_, "(I) writing OpenFOAM results");
+        printStats(timeInWriteResults_, "(O) writing OpenFOAM results");
         Info << "+---------------------------------------------------------------------------------------+" << nl;
         Info << nl;
         Info << "Time exclusively in preCICE:     " << (timeInInitialize_ + timeInInitializeData_ + timeInAdvance_ + timeInFinalize_).str() << nl;
@@ -1702,8 +1702,8 @@ preciceAdapter::Adapter::~Adapter()
         Info << "+---------------------------------------------------------------------------------------+" << nl;
         printStats(timeInInitialize_, "(S) initialize()");
         printStats(timeInInitializeData_, "(S) initializeData()");
-        printStats(timeInAdvance_, "(S) advance()");
-        printStats(timeInFinalize_, "(S) finalize()");
+        printStats(timeInAdvance_, "(I) advance()");
+        printStats(timeInFinalize_, "(I) finalize()");
         Info << "|" << nl;
         Info << "| These times include time waiting for other participants." << nl;
         Info << "| See also precice-<participant>-events-summary.log." << nl;
