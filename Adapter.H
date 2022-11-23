@@ -50,19 +50,19 @@ private:
 
 #ifdef ADAPTER_ENABLE_TIMINGS
     //- Timers
-    clockValue timeInConfigRead_;
-    clockValue timeInPreciceConstruct_;
-    clockValue timeInMeshSetup_;
-    clockValue timeInInitialize_;
-    clockValue timeInInitializeData_;
-    clockValue timeInCheckpointingSetup_;
-    clockValue timeInWrite_;
-    clockValue timeInAdvance_;
-    clockValue timeInRead_;
-    clockValue timeInCheckpointingRead_;
-    clockValue timeInCheckpointingWrite_;
-    clockValue timeInWriteResults_;
-    clockValue timeInFinalize_;
+    std::pair<clockValue, std::size_t> timeInConfigRead_{};
+    std::pair<clockValue, std::size_t> timeInPreciceConstruct_{};
+    std::pair<clockValue, std::size_t> timeInMeshSetup_{};
+    std::pair<clockValue, std::size_t> timeInInitialize_{};
+    std::pair<clockValue, std::size_t> timeInInitializeData_{};
+    std::pair<clockValue, std::size_t> timeInCheckpointingSetup_{};
+    std::pair<clockValue, std::size_t> timeInWrite_{};
+    std::pair<clockValue, std::size_t> timeInAdvance_{};
+    std::pair<clockValue, std::size_t> timeInRead_{};
+    std::pair<clockValue, std::size_t> timeInCheckpointingRead_{};
+    std::pair<clockValue, std::size_t> timeInCheckpointingWrite_{};
+    std::pair<clockValue, std::size_t> timeInWriteResults_{};
+    std::pair<clockValue, std::size_t> timeInFinalize_{};
 #endif
 
     //- OpenFOAM runTime object

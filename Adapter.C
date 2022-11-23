@@ -1649,15 +1649,15 @@ preciceAdapter::Adapter::~Adapter()
 {
     teardown();
 
-    auto printStats = [&](const clockValue& val, std::string name)
+    auto printStats = [&](const std::pair<clockValue, std::size_t>& val, std::string name)
     {
-        double max_time = val.operator double();
+        double max_time = val.first.operator double();
         Pstream::gather(max_time, [](double v1, double v2)
                         { return std::max(v1, v2); });
-        double min_time = val.operator double();
+        double min_time = val.first.operator double();
         Pstream::gather(min_time, [](double v1, double v2)
                         { return std::min(v1, v2); });
-        double avg_time = val.operator double() * val.operator double();
+        double avg_time = val.first.operator double() * val.first.operator double();
         Pstream::gather(avg_time, std::plus<double>());
 
         unsigned int pos_non_space = name.find_first_not_of(' ');
@@ -1668,7 +1668,9 @@ preciceAdapter::Adapter::~Adapter()
         if (Pstream::master())
         {
             std::cout << "| " << std::setw(3) << name;
-            std::cout << std::setw(12) << " |";
+            // std::cout << std::setw(8) << " |";
+            std::cout << std::setw(12) << std::right;
+            std::cout << val.second << " |";
             std::cout << std::setw(12) << std::setprecision(5) << std::right;
             std::cout << min_time << "s |";
             std::cout << std::setw(12) << std::setprecision(5) << std::right;
@@ -1681,10 +1683,10 @@ preciceAdapter::Adapter::~Adapter()
 
     TIMING_MODE(
         // Continuing the output started in the destructor of preciceAdapterFunctionObject
-        Info << "Time exclusively in the adapter: " << (timeInConfigRead_ + timeInMeshSetup_ + timeInCheckpointingSetup_ + timeInWrite_ + timeInRead_ + timeInCheckpointingWrite_ + timeInCheckpointingRead_).str() << nl;
-        Info << "+---------------------------------------------------------------------------------------+" << nl;
-        Info << "| Section                                  |     min time |     avg time |     max time |" << nl;
-        Info << "+---------------------------------------------------------------------------------------+" << nl;
+        // Info << "Time exclusively in the adapter: " << (timeInConfigRead_.first + timeInMeshSetup_.first + timeInCheckpointingSetup_.first + timeInWrite_.first + timeInRead_.first + timeInCheckpointingWrite_.first + timeInCheckpointingRead_.first).str() << nl;
+        Info << "+-----------------------------------------------------------------------------------------+" << nl;
+        Info << "| Section                          no. calls |     min time |     avg time |     max time |" << nl;
+        Info << "+-----------------------------------------------------------------------------------------+" << nl;
         printStats(timeInConfigRead_, "(S) reading preciceDict");
         printStats(timeInPreciceConstruct_, "(S) constructing preCICE");
         printStats(timeInMeshSetup_, "(S) setting up interfaces");
@@ -1694,12 +1696,12 @@ preciceAdapter::Adapter::~Adapter()
         printStats(timeInCheckpointingWrite_, "(I) writing checkpoints");
         printStats(timeInCheckpointingRead_, "(I) reading checkpoints");
         printStats(timeInWriteResults_, "(O) writing OpenFOAM results");
-        Info << "+---------------------------------------------------------------------------------------+" << nl;
+        Info << "+-----------------------------------------------------------------------------------------+" << nl;
         Info << nl;
-        Info << "Time exclusively in preCICE:     " << (timeInInitialize_ + timeInInitializeData_ + timeInAdvance_ + timeInFinalize_).str() << nl;
-        Info << "+---------------------------------------------------------------------------------------+" << nl;
-        Info << "| Section                                  |     min time |     avg time |     max time |" << nl;
-        Info << "+---------------------------------------------------------------------------------------+" << nl;
+        // Info << "Time exclusively in preCICE:     " << (timeInInitialize_ + timeInInitializeData_ + timeInAdvance_ + timeInFinalize_).str() << nl;
+        Info << "+-----------------------------------------------------------------------------------------+" << nl;
+        Info << "| Section                          no. calls |     min time |     avg time |     max time |" << nl;
+        Info << "+-----------------------------------------------------------------------------------------+" << nl;
         printStats(timeInInitialize_, "(S) initialize()");
         printStats(timeInInitializeData_, "(S) initializeData()");
         printStats(timeInAdvance_, "(I) advance()");
@@ -1707,7 +1709,7 @@ preciceAdapter::Adapter::~Adapter()
         Info << "|" << nl;
         Info << "| These times include time waiting for other participants." << nl;
         Info << "| See also precice-<participant>-events-summary.log." << nl;
-        Info << "+---------------------------------------------------------------------------------------+" << nl;)
+        Info << "+-----------------------------------------------------------------------------------------+" << nl;)
 
     return;
 }

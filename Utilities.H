@@ -29,7 +29,9 @@
 
 // Shortcut for adding time
 #ifdef ADAPTER_ENABLE_TIMINGS
-#define ACCUMULATE_TIMER(x) x += clock.elapsed()
+#define ACCUMULATE_TIMER(x)     \
+    x.first += clock.elapsed(); \
+    x.second++;
 #else
 #define ACCUMULATE_TIMER(x)
 #endif
