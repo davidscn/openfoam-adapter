@@ -446,21 +446,21 @@ void preciceAdapter::Adapter::execute()
     // coupling, we write again when the coupling timestep is complete.
     // Check the behavior e.g. by using watch on a result file:
     //     watch -n 0.1 -d ls --full-time Fluid/0.01/T.gz
-    SETUP_TIMER();
     if (checkpointing_ && isCouplingTimeWindowComplete())
     {
         // Check if the time directory already exists
         // (i.e. the solver wrote results that need to be updated)
         if (runTime_.timePath().type() == fileName::DIRECTORY)
         {
+            SETUP_TIMER();
             adapterInfo(
                 "The coupling timestep completed. "
                 "Writing the updated results.",
                 "info");
             const_cast<Time&>(runTime_).writeNow();
+            ACCUMULATE_TIMER(timeInWriteResults_);
         }
     }
-    ACCUMULATE_TIMER(timeInWriteResults_);
 
     // Read the received coupling data from the buffer
     readCouplingData();
