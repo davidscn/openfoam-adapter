@@ -15,9 +15,11 @@ class Velocity : public CouplingDataUser
 {
 
 private:
+    //- OpenFOAM fvMesh object (we need to access the objects' registry multiple times)
+    const Foam::fvMesh& mesh_;
+
     //- Velocity field
     Foam::volVectorField* U_;
-
 public:
     //- Constructor
     Velocity(
